@@ -1,0 +1,15 @@
+# --- General ---
+.DS_Store
+.env
+
+# --- Node / JS ---
+node_modules/
+
+# --- Python virtual env (if present) ---
+.venv/
+
+# --- Logs & misc ---
+*.log
+
+# --- OS files ---
+Thumbs.db

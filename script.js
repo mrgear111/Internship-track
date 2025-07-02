@@ -86,7 +86,9 @@ async function fetchStats(token) {
             open_prs: openPRsCount,
             merged_prs: mergedPRsCount,
             closed_issues: closedIssuesCount,
-            pushed_at: repoData.pushed_at
+            pushed_at: repoData.pushed_at,
+            stars: repoData.stargazers_count,
+            forks: repoData.forks_count
         });
     }
 
@@ -94,6 +96,8 @@ async function fetchStats(token) {
 }
 
 function renderTable(data) {
+    // sort by stars descending
+    data.sort((a,b)=>b.stars-a.stars);
     tbody.innerHTML = "";
     const weekMs = 14 * 24 * 60 * 60 * 1000;
     data.forEach(r => {
@@ -109,6 +113,7 @@ function renderTable(data) {
             <td>${r.pushed_at.slice(0,10)}</td>
             <td>${active}</td>
         `;
-        tbody.appendChild(tr);
+                tbody.appendChild(tr);
+        tr.addEventListener("click", () => showDetails(r));
     });
 }

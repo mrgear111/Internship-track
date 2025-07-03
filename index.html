@@ -13,8 +13,17 @@
     </style>
 </head>
 <body>
-<h1>GitHub Organization Repository Dashboard</h1>
-<div class="token-box">
+<h1 id="mainHeading">GitHub Organization Repository Dashboard</h1>
+
+<!-- Login Box -->
+<div id="loginBox" style="max-width:320px;margin:2rem auto;text-align:center;border:1px solid #ccc;padding:1rem;border-radius:6px;">
+    <h2>Login</h2>
+    <input id="loginUser" placeholder="User ID" style="margin-bottom:0.5rem;width:100%;"><br>
+    <input id="loginPass" type="password" placeholder="Password" style="margin-bottom:0.5rem;width:100%;"><br>
+    <button id="loginBtn">Login</button>
+</div>
+
+<div id="tokenBox" class="token-box">
     <label>
         Personal Access Token (read-only):
         <input type="password" id="tokenInput" placeholder="ghp_…" size="40">
@@ -26,7 +35,9 @@
     <thead>
     <tr>
         <th>Repository</th>
+        <th>Total Issues</th>
         <th>Open Issues</th>
+        <th>Total PRs</th>
         <th>Open PRs</th>
         <th>Merged PRs (Overall)</th>
         <th>Closed Issues (Overall)</th>

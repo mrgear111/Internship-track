@@ -13,27 +13,47 @@ const REPOS = [
     "VS-code-Extension"
 ];
 // -------------------------
+const PRESET_TOKEN = "YOUR_GH_PAT_HERE"; // <<< replace with real token
+const AUTH_USER = "admin123";
+const AUTH_PASS = "daksh";
+const SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwG7obbGvRIwzSwMeZ290DFoPeAdcTY83XJebdztPB_nQb_BTAhCN7O3rMveIvkI4wG/exec";
+
+const loginBox = document.getElementById("loginBox");
+const loginBtn = document.getElementById("loginBtn");
+const loginUser = document.getElementById("loginUser");
+const loginPass = document.getElementById("loginPass");
+
+loginBtn.addEventListener("click", () => {
+    if(loginUser.value === AUTH_USER && loginPass.value === AUTH_PASS){
+        loginBox.style.display = "none";
+        mainHeading.textContent += " (logged in)";
+        loadStats();
+    } else {
+        alert("Invalid credentials");
+    }
+});
 
 const tokenInput = document.getElementById("tokenInput");
 const loadBtn = document.getElementById("loadBtn");
 const table = document.getElementById("statsTable");
 const tbody = table.querySelector("tbody");
 
-loadBtn.addEventListener("click", () => {
-    const token = tokenInput.value.trim();
-    if (!token) {
-        alert("Please paste your GitHub token.");
-        return;
-    }
+loadBtn.addEventListener("click", loadStats);
+
+async function loadStats(){
     table.style.display = "";
-    tbody.innerHTML = "<tr><td colspan='7'>Loading…</td></tr>";
-
-    fetchStats(token).catch(err => {
+    tbody.innerHTML = "<tr><td colspan='9'>Loading…</td></tr>";
+    try{
+        const rows = await fetch("/api/stats").then(r=>r.json());
+        renderTable(rows);
+        sendToSheets(rows);
+    }catch(err){
         console.error(err);
-        tbody.innerHTML = `<tr><td colspan='7' style='color:red;'>Error: ${err.message}</td></tr>`;
-    });
-});
+        tbody.innerHTML = `<tr><td colspan='9' style='color:red;'>Error: ${err.message}</td></tr>`;
+    }
+}
 
+// fetchStats kept for legacy (no longer used) 
 async function fetchStats(token) {
     const headers = {
         "Accept": "application/vnd.github+json",
@@ -93,9 +113,38 @@ async function fetchStats(token) {
     }
 
     renderTable(rows);
+    sendToSheets(rows);
+}
+
+function sendToSheets(data) {
+    fetch(SHEETS_WEBAPP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    }).then(r => console.log("Sheets response", r.status)).catch(console.error);
 }
 
 function renderTable(data) {
+    // summary
+    const totals = data.reduce((acc, r) => {
+        acc.issues += r.open_issues + r.closed_issues;
+        acc.closedIssues += r.closed_issues;
+        acc.openIssues += r.open_issues;
+        acc.prs += r.open_prs + r.merged_prs;
+        acc.openPRs += r.open_prs;
+        acc.mergedPRs += r.merged_prs;
+        return acc;
+    }, {issues:0, closedIssues:0, openIssues:0, prs:0, openPRs:0, mergedPRs:0});
+    let summaryEl = document.getElementById("summary");
+    if(!summaryEl){
+        summaryEl = document.createElement("p");
+        summaryEl.id = "summary";
+        summaryEl.style.fontWeight = "bold";
+        summaryEl.style.marginTop = "1rem";
+        table.parentNode.insertBefore(summaryEl, table.nextSibling);
+    }
+    summaryEl.textContent = `Total Issues: ${totals.issues} (Open ${totals.openIssues}, Closed ${totals.closedIssues})  |  Total PRs: ${totals.prs} (Open ${totals.openPRs}, Merged ${totals.mergedPRs})`;
+
     // sort by stars descending
     data.sort((a,b)=>b.stars-a.stars);
     tbody.innerHTML = "";
@@ -103,10 +152,14 @@ function renderTable(data) {
     data.forEach(r => {
         const lastPushDate = new Date(r.pushed_at);
         const active = (Date.now() - lastPushDate.getTime()) < weekMs ? "✅" : "❌";
+        const totalIssues = r.open_issues + r.closed_issues;
+        const totalPRs = r.open_prs + r.merged_prs;
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td><a href="${r.html_url}" target="_blank">${r.name}</a></td>
+            <td>${totalIssues}</td>
             <td>${r.open_issues}</td>
+            <td>${totalPRs}</td>
             <td>${r.open_prs}</td>
             <td>${r.merged_prs}</td>
             <td>${r.closed_issues}</td>

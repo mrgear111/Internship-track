@@ -19,6 +19,7 @@ const AUTH_PASS = "daksh";
 const SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwG7obbGvRIwzSwMeZ290DFoPeAdcTY83XJebdztPB_nQb_BTAhCN7O3rMveIvkI4wG/exec";
 
 const loginBox = document.getElementById("loginBox");
+const controls = document.getElementById("controls");
 const loginBtn = document.getElementById("loginBtn");
 const loginUser = document.getElementById("loginUser");
 const loginPass = document.getElementById("loginPass");
@@ -27,6 +28,7 @@ loginBtn.addEventListener("click", () => {
     if(loginUser.value === AUTH_USER && loginPass.value === AUTH_PASS){
         loginBox.style.display = "none";
         mainHeading.textContent += " (logged in)";
+        controls.style.display = "";
         loadStats();
     } else {
         alert("Invalid credentials");
@@ -42,9 +44,17 @@ loadBtn.addEventListener("click", loadStats);
 
 async function loadStats(){
     table.style.display = "";
-    tbody.innerHTML = "<tr><td colspan='9'>Loading…</td></tr>";
+    tbody.innerHTML = "<tr><td colspan='10'>Loading…</td></tr>";
     try{
-        const rows = await fetch("/api/stats").then(r=>r.json());
+        const resp = await fetch("/api/stats");
+        if(!resp.ok){
+            const text = await resp.text();
+            throw new Error(text);
+        }
+        const rows = await resp.json();
+        if(!Array.isArray(rows)){
+            throw new Error(rows.error || "Unexpected response from server");
+        }
         renderTable(rows);
         sendToSheets(rows);
     }catch(err){

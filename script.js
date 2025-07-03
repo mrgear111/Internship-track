@@ -14,8 +14,8 @@ const REPOS = [
 ];
 // -------------------------
 const PRESET_TOKEN = "YOUR_GH_PAT_HERE"; // <<< replace with real token
-const AUTH_USER = "admin123";
-const AUTH_PASS = "daksh";
+const AUTH_USER = "admin";
+const AUTH_PASS = "track123";
 const SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwG7obbGvRIwzSwMeZ290DFoPeAdcTY83XJebdztPB_nQb_BTAhCN7O3rMveIvkI4wG/exec";
 
 const loginBox = document.getElementById("loginBox");
